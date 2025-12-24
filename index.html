@@ -52,7 +52,7 @@
     button:hover {
       background: #e6b84c;
     }
-    .success {
+    #msg {
       margin-top: 15px;
       text-align: center;
     }
@@ -79,58 +79,42 @@
       <button type="submit">Agendar</button>
     </form>
 
-    <div class="success" id="msg"></div>
+    <div id="msg"></div>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAqfNP2vSY7webYGTQk-WCh7em3u3luBwQ",
-      authDomain: "barbearia-2aa33.firebaseapp.com",
-      projectId: "barbearia-2aa33",
-      storageBucket: "barbearia-2aa33.firebasestorage.app",
-      messagingSenderId: "480793623738",
-      appId: "1:480793623738:web:432f68f24ebae2cdbdd683"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     const form = document.getElementById("agendamentoForm");
     const msg = document.getElementById("msg");
 
-    form.addEventListener("submit", async (e) => {
+    function getAgendamentos() {
+      return JSON.parse(localStorage.getItem("agendamentos")) || [];
+    }
+
+    function salvarAgendamentos(lista) {
+      localStorage.setItem("agendamentos", JSON.stringify(lista));
+    }
+
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
-      msg.innerText = "Verificando horário...";
 
       const nome = document.getElementById("nome").value;
       const telefone = document.getElementById("telefone").value;
       const data = document.getElementById("data").value;
       const hora = document.getElementById("hora").value;
 
-      const consulta = await db
-        .collection("agendamentos")
-        .where("data", "==", data)
-        .where("hora", "==", hora)
-        .get();
+      const agendamentos = getAgendamentos();
 
-      if (!consulta.empty) {
-        msg.innerText = "❌ Horário já ocupado";
+      const existe = agendamentos.find(a => a.data === data && a.hora === hora);
+
+      if (existe) {
+        msg.innerText = "❌ Esse horário já está ocupado. Escolha outro.";
         return;
       }
 
-      await db.collection("agendamentos").add({
-        nome,
-        telefone,
-        data,
-        hora,
-        criadoEm: new Date()
-      });
+      agendamentos.push({ nome, telefone, data, hora });
+      salvarAgendamentos(agendamentos);
 
-      const numeroBarbearia = "55921304223";
+      const numeroBarbearia = "55921304223"; // SEU NÚMERO
       const texto =
         `Olá, gostaria de agendar um horário na barbearia.%0A%0A` +
         `Nome: ${nome}%0A` +
