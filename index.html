@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agendamento - Barbearia</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -53,70 +54,99 @@
     }
     .success {
       margin-top: 15px;
-      color: #4caf50;
       text-align: center;
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>Agendamento</h1>
+
     <form id="agendamentoForm">
-      <label for="nome">Nome do cliente</label>
-      <input type="text" id="nome" required placeholder="Ex: João Silva" />
+      <label>Nome</label>
+      <input type="text" id="nome" required>
 
-      <label for="telefone">Número / WhatsApp</label>
-      <input type="tel" id="telefone" required placeholder="Ex: (11) 99999-9999" />
+      <label>WhatsApp</label>
+      <input type="tel" id="telefone" required>
 
-      <label for="data">Data</label>
-      <input type="date" id="data" required />
+      <label>Data</label>
+      <input type="date" id="data" required>
 
-      <label for="hora">Horário</label>
-      <input type="time" id="hora" required />
+      <label>Horário</label>
+      <input type="time" id="hora" required>
 
       <button type="submit">Agendar</button>
     </form>
+
     <div class="success" id="msg"></div>
   </div>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <script>
-    const form = document.getElementById('agendamentoForm');
-    const msg = document.getElementById('msg');
+    // CONFIG FIREBASE
+    const firebaseConfig = {
+      apiKey: "AIzaSyAqfNP2vSY7webYGTQk-WCh7em3u3luBwQ",
+      authDomain: "barbearia-2aa33.firebaseapp.com",
+      projectId: "barbearia-2aa33",
+      storageBucket: "barbearia-2aa33.firebasestorage.app",
+      messagingSenderId: "480793623738",
+      appId: "1:480793623738:web:432f68f24ebae2cdbdd683"
+    };
 
-    form.addEventListener('submit', function(e) {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const form = document.getElementById("agendamentoForm");
+    const msg = document.getElementById("msg");
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      msg.innerText = "Verificando horário...";
 
-      const nome = document.getElementById('nome').value;
-      const telefone = document.getElementById('telefone').value;
-      const data = document.getElementById('data').value;
-      const hora = document.getElementById('hora').value;
+      const nome = nome.value;
+      const telefone = telefone.value;
+      const data = data.value;
+      const hora = hora.value;
 
-      const texto = `Olá, gostaria de agendar um horário na barbearia.%0A%0ANome: ${nome}%0ATelefone: ${telefone}%0AData: ${data}%0AHorário: ${hora}`;
-      const numeroBarbearia = '55921304223'; // coloque seu número aqui com DDI 55
-      const linkWhats = `https://wa.me/${numeroBarbearia}?text=${texto}`;
-      window.open(linkWhats, '_blank');
+      // VERIFICA HORÁRIO
+      const consulta = await db
+        .collection("agendamentos")
+        .where("data", "==", data)
+        .where("hora", "==", hora)
+        .get();
 
-      msg.innerText = 'Redirecionando para o WhatsApp para confirmar o agendamento...';
+      if (!consulta.empty) {
+        msg.innerText = "❌ Horário já ocupado";
+        return;
+      }
+
+      // SALVA NO FIREBASE
+      await db.collection("agendamentos").add({
+        nome,
+        telefone,
+        data,
+        hora,
+        criadoEm: new Date()
+      });
+
+      // ENVIA PARA WHATSAPP
+      const numeroBarbearia = "55921304223"; // SEU NÚMERO
+      const texto =
+        `Olá, gostaria de agendar um horário na barbearia.%0A%0A` +
+        `Nome: ${nome}%0A` +
+        `Telefone: ${telefone}%0A` +
+        `Data: ${data}%0A` +
+        `Horário: ${hora}`;
+
+      window.open(`https://wa.me/${numeroBarbearia}?text=${texto}`, "_blank");
+
+      msg.innerText = "✅ Horário reservado com sucesso!";
       form.reset();
     });
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAqfNP2vSY7webYGTQk-WCh7em3u3luBwQ",
-  authDomain: "barbearia-2aa33.firebaseapp.com",
-  projectId: "barbearia-2aa33",
-  storageBucket: "barbearia-2aa33.firebasestorage.app",
-  messagingSenderId: "480793623738",
-  appId: "1:480793623738:web:432f68f24ebae2cdbdd683",
-  measurementId: "G-Z88T4ZFBQ2"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
   </script>
 </body>
 </html>
