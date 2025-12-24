@@ -99,6 +99,24 @@
       msg.innerText = 'Redirecionando para o WhatsApp para confirmar o agendamento...';
       form.reset();
     });
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAqfNP2vSY7webYGTQk-WCh7em3u3luBwQ",
+  authDomain: "barbearia-2aa33.firebaseapp.com",
+  projectId: "barbearia-2aa33",
+  storageBucket: "barbearia-2aa33.firebasestorage.app",
+  messagingSenderId: "480793623738",
+  appId: "1:480793623738:web:432f68f24ebae2cdbdd683",
+  measurementId: "G-Z88T4ZFBQ2"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
   </script>
 </body>
 </html>
