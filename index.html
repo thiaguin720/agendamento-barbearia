@@ -87,7 +87,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // CONFIG FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyAqfNP2vSY7webYGTQk-WCh7em3u3luBwQ",
       authDomain: "barbearia-2aa33.firebaseapp.com",
@@ -107,12 +106,11 @@
       e.preventDefault();
       msg.innerText = "Verificando horário...";
 
-      const nome = nome.value;
-      const telefone = telefone.value;
-      const data = data.value;
-      const hora = hora.value;
+      const nome = document.getElementById("nome").value;
+      const telefone = document.getElementById("telefone").value;
+      const data = document.getElementById("data").value;
+      const hora = document.getElementById("hora").value;
 
-      // VERIFICA HORÁRIO
       const consulta = await db
         .collection("agendamentos")
         .where("data", "==", data)
@@ -124,7 +122,6 @@
         return;
       }
 
-      // SALVA NO FIREBASE
       await db.collection("agendamentos").add({
         nome,
         telefone,
@@ -133,8 +130,7 @@
         criadoEm: new Date()
       });
 
-      // ENVIA PARA WHATSAPP
-      const numeroBarbearia = "55921304223"; // SEU NÚMERO
+      const numeroBarbearia = "55921304223";
       const texto =
         `Olá, gostaria de agendar um horário na barbearia.%0A%0A` +
         `Nome: ${nome}%0A` +
