@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Agendamento - Barbearia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
@@ -23,110 +23,142 @@
       max-width: 400px;
       box-shadow: 0 0 10px rgba(0,0,0,0.6);
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-    }
-    input, button {
+    h1 { text-align: center; }
+    label { margin-top: 10px; display: block; }
+    input, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
       border-radius: 8px;
       border: none;
     }
-    input {
-      background: #333;
-      color: #fff;
-    }
+    input, select { background: #333; color: #fff; }
     button {
       background: #c89b3c;
       color: #000;
       font-weight: bold;
+      margin-top: 15px;
       cursor: pointer;
-      margin-top: 15px;
     }
-    button:hover {
-      background: #e6b84c;
-    }
-    #msg {
+    #msg { margin-top: 10px; text-align: center; }
+    .ocupado { color: #ff5252; font-size: 14px; }
+    .admin {
       margin-top: 15px;
-      text-align: center;
+      background: #444;
+      color: #fff;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Agendamento</h1>
+<div class="container">
+  <h1>Agendamento</h1>
 
-    <form id="agendamentoForm">
-      <label>Nome</label>
-      <input type="text" id="nome" required>
+  <form id="form">
+    <label>Nome</label>
+    <input id="nome" required>
 
-      <label>WhatsApp</label>
-      <input type="tel" id="telefone" required>
+    <label>WhatsApp</label>
+    <input id="telefone" required>
 
-      <label>Data</label>
-      <input type="date" id="data" required>
+    <label>Serviço</label>
+    <select id="servico">
+      <option>Corte</option>
+      <option>Barba</option>
+      <option>Corte + Barba</option>
+    </select>
 
-      <label>Horário</label>
-      <input type="time" id="hora" required>
+    <label>Data</label>
+    <input type="date" id="data" required>
 
-      <button type="submit">Agendar</button>
-    </form>
+    <label>Horário</label>
+    <select id="hora"></select>
 
-    <div id="msg"></div>
-  </div>
+    <button type="submit">Agendar</button>
+  </form>
 
-  <script>
-    const form = document.getElementById("agendamentoForm");
-    const msg = document.getElementById("msg");
+  <div id="msg"></div>
+  <div id="ocupados" class="ocupado"></div>
 
-    function getAgendamentos() {
-      return JSON.parse(localStorage.getItem("agendamentos")) || [];
-    }
+  <button class="admin" onclick="limparAgenda()">Limpar agenda (admin)</button>
+</div>
 
-    function salvarAgendamentos(lista) {
-      localStorage.setItem("agendamentos", JSON.stringify(lista));
-    }
+<script>
+  const inicio = 9;
+  const fim = 18;
+  const intervalo = 30;
+  const horaSelect = document.getElementById("hora");
 
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-
-      const nome = document.getElementById("nome").value;
-      const telefone = document.getElementById("telefone").value;
-      const data = document.getElementById("data").value;
-      const hora = document.getElementById("hora").value;
-
-      const agendamentos = getAgendamentos();
-
-      const existe = agendamentos.find(a => a.data === data && a.hora === hora);
-
-      if (existe) {
-        msg.innerText = "❌ Esse horário já está ocupado. Escolha outro.";
-        return;
+  function gerarHorarios() {
+    horaSelect.innerHTML = "";
+    for (let h = inicio; h < fim; h++) {
+      for (let m = 0; m < 60; m += intervalo) {
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        horaSelect.innerHTML += `<option>${hh}:${mm}</option>`;
       }
+    }
+  }
+  gerarHorarios();
 
-      agendamentos.push({ nome, telefone, data, hora });
-      salvarAgendamentos(agendamentos);
+  function getAgendamentos() {
+    return JSON.parse(localStorage.getItem("agendamentos")) || [];
+  }
 
-      const numeroBarbearia = "55921304223"; // SEU NÚMERO
-      const texto =
-        `Olá, gostaria de agendar um horário na barbearia.%0A%0A` +
-        `Nome: ${nome}%0A` +
-        `Telefone: ${telefone}%0A` +
-        `Data: ${data}%0A` +
-        `Horário: ${hora}`;
+  function salvarAgendamentos(a) {
+    localStorage.setItem("agendamentos", JSON.stringify(a));
+  }
 
-      window.open(`https://wa.me/${numeroBarbearia}?text=${texto}`, "_blank");
+  function mostrarOcupados(data) {
+    const lista = getAgendamentos().filter(a => a.data === data);
+    document.getElementById("ocupados").innerText =
+      lista.length ? "Horários ocupados: " + lista.map(a => a.hora).join(", ") : "";
+  }
 
-      msg.innerText = "✅ Horário reservado com sucesso!";
-      form.reset();
-    });
-  </script>
+  document.getElementById("data").addEventListener("change", e => {
+    mostrarOcupados(e.target.value);
+  });
+
+  document.getElementById("form").addEventListener("submit", e => {
+    e.preventDefault();
+    const nome = nome.value;
+    const telefone = telefone.value;
+    const servico = servico.value;
+    const data = dataInput.value = document.getElementById("data").value;
+    const hora = horaSelect.value;
+
+    const agendamentos = getAgendamentos();
+    if (agendamentos.find(a => a.data === data && a.hora === hora)) {
+      msg.innerText = "❌ Horário já ocupado";
+      return;
+    }
+
+    agendamentos.push({ nome, telefone, servico, data, hora });
+    salvarAgendamentos(agendamentos);
+
+    const texto =
+      `Olá! 👋%0A` +
+      `Seu horário foi *pré-agendado*.%0A%0A` +
+      `👤 Nome: ${nome}%0A` +
+      `✂️ Serviço: ${servico}%0A` +
+      `📅 Data: ${data}%0A` +
+      `⏰ Horário: ${hora}%0A%0A` +
+      `Aguarde a confirmação da barbearia.`;
+
+    window.open(`https://wa.me/55921304223?text=${texto}`, "_blank");
+
+    msg.innerText = "✅ Horário reservado!";
+    mostrarOcupados(data);
+    form.reset();
+  });
+
+  function limparAgenda() {
+    if (confirm("Deseja limpar toda a agenda?")) {
+      localStorage.removeItem("agendamentos");
+      document.getElementById("ocupados").innerText = "";
+      alert("Agenda limpa!");
+    }
+  }
+</script>
 </body>
 </html>
